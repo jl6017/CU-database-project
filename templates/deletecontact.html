@@ -2,7 +2,7 @@
 {% block content %}
 <form method="POST" action="deletecontact.html">
     <label>
-        <select name="Contacts">
+        <select name="contact">
             {% for contact in contacts %}
             <option value="{{contact[1]}}">{{contact[0]}}, {{contact[1]}}</option>
             {% endfor %}
@@ -10,3 +10,4 @@
         <input type="submit" value="Delete contact">
     </label>
 </form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+Change your nickname.
+<form action="namechange.html" method="POST">
+    <label>
+        <input type="text" name="name" placeholder="New name">
+    </label>
+    <input type="submit" placeholder="Change name">
+</form><br>
+or <a href="home.html">go back home</a>
+{% endblock %}

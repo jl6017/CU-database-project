@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+<h1>Delete Contact</h1>
 <form method="POST" action="deletecontact.html">
     <label>
         <select name="contact">
@@ -9,5 +10,6 @@
         </select>
         <input type="submit" value="Delete contact">
     </label>
-</form>
+</form><br>
+or <a href="home.html">go back home</a>
 {% endblock %}

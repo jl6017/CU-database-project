@@ -4,10 +4,8 @@ from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, session, abort, url_for
 import flask_login
 
-
 app = Flask(__name__, instance_relative_config=True)
 app.secret_key = 'secret'
-
 
 DB_USER = 'jl6017'
 DB_PASS = 'jl6017'
@@ -17,6 +15,7 @@ engine = create_engine(DB_URI)
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+
 
 class User(flask_login.UserMixin):
 
@@ -45,37 +44,38 @@ def user_loader(email):
     FROM Users
     WHERE email='{email}'
     """).fetchone()
-    user = User(info[0],info[1],info[2])
+    user = User(info[0], info[1], info[2])
     user.id = email
     return user
 
 
 @app.before_request
 def before_request():
-  """
+    """
   This function is run at the beginning of every web request
   (every time you enter an address in the web browser).
   We use it to setup a database connection that can be used throughout the request
   The variable g is globally accessible
   """
-  try:
-    g.conn = engine.connect()
-  except:
-    print("uh oh, problem connecting to database")
-    import traceback; traceback.print_exc()
-    g.conn = None
+    try:
+        g.conn = engine.connect()
+    except:
+        print("uh oh, problem connecting to database")
+        import traceback;
+        traceback.print_exc()
+        g.conn = None
 
 
 @app.teardown_request
 def teardown_request(exception):
-  """
+    """
   At the end of the web request, this makes sure to close the database connection.
   If you don't the database could run out of memory!
   """
-  try:
-    g.conn.close()
-  except Exception as e:
-    pass
+    try:
+        g.conn.close()
+    except Exception as e:
+        pass
 
 
 @app.route('/')
@@ -87,9 +87,12 @@ def start():
 def index():
     return render_template('index.html')
 
-@app.route('/backtoindex.html',methods=['GET',])
+
+@app.route('/backtoindex.html', methods=['GET', ])
 def backtoindex():
     return render_template('backtoindex.html', message=request.args.get('message'))
+
+
 @app.route('/login.html', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -105,7 +108,7 @@ def login():
 
         if check is None:
             message = "Login failed. Invalid credentials."
-            return redirect(url_for('login', message = message))
+            return redirect(url_for('login', message=message))
         name = check[1]
 
         info = g.conn.execute(f"""
@@ -139,19 +142,19 @@ def register():
             message = "Registration failed. Email already exists."
             return redirect(url_for('backtoindex', message=message))
 
-        uid = g.conn.execute("""SELECT MAX(uid) as max FROM Users LIMIT 1""").fetchone()[0]+1
+        uid = g.conn.execute("""SELECT MAX(uid) as max FROM Users LIMIT 1""").fetchone()[0] + 1
         engine.execute(f"""
         INSERT INTO Users(uid, nickname, email, password) 
         VALUES ({uid},'{entered_name}','{entered_email}','{entered_password}')"""
                        )
 
         message = "Registration successful."
-        return redirect(url_for('backtoindex',message=message))
+        return redirect(url_for('backtoindex', message=message))
 
     return render_template('register.html')
 
 
-@app.route('/contacts.html', methods=['GET',])
+@app.route('/contacts.html', methods=['GET', ])
 @flask_login.login_required
 def contacts():
     uid = get_uid()
@@ -162,7 +165,7 @@ def contacts():
     """).fetchone()
 
     if contlist_id is None:
-        contlist_id = g.conn.execute("""SELECT MAX(contlist_id) FROM manage2_contlists""").fetchone()[0]+1
+        contlist_id = g.conn.execute("""SELECT MAX(contlist_id) FROM manage2_contlists""").fetchone()[0] + 1
         engine.execute(f"""
         INSERT INTO manage2_contlists VALUES ({uid}, {contlist_id})
         """)
@@ -184,17 +187,20 @@ def contacts():
 
     return render_template('contacts.html', contacts=contacts)
 
-@app.route('/chatlist.html',methods=['GET',])
+
+@app.route('/chatlist.html', methods=['GET', ])
 @flask_login.login_required
 def chatlist():
     return render_template(chatlist)
 
-@app.route('/home.html', methods=['GET',])
+
+@app.route('/home.html', methods=['GET', ])
 @flask_login.login_required
 def home():
     return render_template('home.html', name=flask_login.current_user.nickname)
 
-@app.route('/addcontact.html', methods=['GET','POST'])
+
+@app.route('/addcontact.html', methods=['GET', 'POST'])
 @flask_login.login_required
 def addcontact():
     if request.method == 'POST':
@@ -209,7 +215,7 @@ def addcontact():
         """).fetchone()
         if email_exists is None:
             message = 'Email does not exist, or other error occurred.'
-            return redirect(url_for('backtohome',message=message))
+            return redirect(url_for('backtohome', message=message))
         cont_uid = email_exists[1]
 
         engine.execute(f"""
@@ -217,11 +223,12 @@ def addcontact():
         ON CONFLICT DO NOTHING
         """)
         message = 'Added contact.'
-        return redirect(url_for('backtohome', message = message))
+        return redirect(url_for('backtohome', message=message))
     return render_template('addcontact.html')
 
 
-@app.route('/backtohome.html', methods=['GET',])
+@app.route('/backtohome.html', methods=['GET', ])
+@flask_login.login_required
 def backtohome():
     return render_template('backtohome.html', message=request.args.get('message'))
 
@@ -241,11 +248,15 @@ def deletecontact():
         WHERE email = '{email}'
         """).fetchone()
 
+        if cont_id is None:
+            return redirect(url_for('backtohome', message="Can't delete a contact that doesn't exist!"))
 
         engine.execute(f"""
         DELETE FROM contain_contacts
         WHERE uid = {uid} AND contlist_id = {contlist_id} AND cont_id = {cont_id[0]}
         """)
+
+        return redirect(url_for('backtohome', message="Contact deleted."))
 
     cont_ids = g.conn.execute(f"""
     SELECT cont_id
@@ -264,12 +275,30 @@ def deletecontact():
     return render_template('deletecontact.html', contacts=contacts)
 
 
+@app.route('/namechange.html', methods=['GET', 'POST'])
+@flask_login.login_required
+def namechange():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        uid = get_uid()
+
+        engine.execute(f"""
+        UPDATE Users
+        SET nickname = '{name}'
+        WHERE uid = {uid}
+        """)
+
+        return redirect(url_for('backtohome', message="Name change successful."))
+    return render_template('namechange.html')
+
+
 def get_uid():
     return g.conn.execute(f"""
     SELECT uid
     FROM Users
     WHERE email='{flask_login.current_user.id}'
     """).fetchone()[0]
+
 
 def get_contlist_id():
     return g.conn.execute(f"""

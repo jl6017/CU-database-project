@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Contacts</h1>
+<a href="addcontact.html">Add Contact</a><br><br>
+<a href="deletecontact.html">Delete Contact</a>
+
+{% for contact in contacts %}
+Nickname: {{contact[0]}}<br>
+Email: {{contact[1]}}<br><br>
+{% else %}
+No contacts :(
+{% endfor %}
+{% endblock %}}

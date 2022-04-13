@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Add Contact</h1>
+<form method="POST" action="addcontact.html">
+    <label>
+       <input type="email" name="email" placeholder="Email" required="required">
+    </label>
+        <input type="submit" value="Add contact">
+</form>
+{% endblock %}

@@ -1,8 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-<h1>Chatlist</h1>
-<a href="addchatroom.html">Add chatroom</a>
-<a href="deletechatroom.html">Delete chatroom</a>
-{% for chat in chatlist%}
+<h1>Your Chatrooms</h1>
+<a href="addchatroom.html">Add chatroom</a><br>
+<a href="deletechatroom.html">Leave a chatroom</a><br>
+<a href="home.html">Back</a><br>
 <br>
-{% endfor %}
+<form method="POST" action="chatlist.html">
+    <label>
+        <select name="cid">
+            {% for chat in chatlist %}
+            <option value="{{chat[0]}}">{{chat[1]}} ({{chat[0]}})</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Join">
+    </label>
+</form>
+{% endblock %}

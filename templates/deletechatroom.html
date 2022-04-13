@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Delete Chatroom</h1>
+Note: If you created this chatroom, it will be deleted upon your departure.
+<form method="POST" action="deletechatroom.html">
+    <label>
+        <select name="cid">
+            {% for chat in chatlist %}
+            <option value="{{chat[0]}}">{{chat[1]}} ({{chat[0]}})</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Leave">
+    </label>
+</form>
+{% endblock %}

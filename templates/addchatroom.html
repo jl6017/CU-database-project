@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Add Chatroom</h1>
+<form method="POST" action="addchatroom.html">
+    <label>
+        <input type="text" name="name" placeholder="Room name" required="required">
+    </label>
+    <input type="submit" value="Create room">
+</form>
+or <a href="home.html">go back home</a>
+{% endblock %}

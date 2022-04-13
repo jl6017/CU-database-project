@@ -2,10 +2,15 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, session, abort, url_for
+from flask_socketio import SocketIO, join_room, leave_room, emit
 import flask_login
+from flask_session import Session
 
 app = Flask(__name__, instance_relative_config=True)
+#Session(app)
 app.secret_key = 'secret'
+#app.config['SECRET_TYPE'] = 'secret'
+#socketio = SocketIO(app, manage_session=False)
 
 DB_USER = 'jl6017'
 DB_PASS = 'jl6017'
@@ -158,19 +163,7 @@ def register():
 @flask_login.login_required
 def contacts():
     uid = get_uid()
-    contlist_id = g.conn.execute(f"""
-    SELECT contlist_id
-    FROM manage2_contlists
-    WHERE manage2_contlists.uid = {uid}
-    """).fetchone()
-
-    if contlist_id is None:
-        contlist_id = g.conn.execute("""SELECT MAX(contlist_id) FROM manage2_contlists""").fetchone()[0] + 1
-        engine.execute(f"""
-        INSERT INTO manage2_contlists VALUES ({uid}, {contlist_id})
-        """)
-    else:
-        contlist_id = contlist_id[0]
+    contlist_id = get_contlist_id()
 
     cont_ids = g.conn.execute(f"""
     SELECT cont_id
@@ -186,13 +179,6 @@ def contacts():
         """).fetchone())
 
     return render_template('contacts.html', contacts=contacts)
-
-
-@app.route('/chatlist.html', methods=['GET', ])
-@flask_login.login_required
-def chatlist():
-    return render_template(chatlist)
-
 
 @app.route('/home.html', methods=['GET', ])
 @flask_login.login_required
@@ -291,6 +277,90 @@ def namechange():
         return redirect(url_for('backtohome', message="Name change successful."))
     return render_template('namechange.html')
 
+@app.route('/chatlist.html',methods = ['GET', 'POST'])
+@flask_login.login_required
+def chatlist():
+    chats = get_chats()
+
+    # if request.method == 'POST':
+    #     cid = request.form.get('cid')
+
+
+    return render_template('chatlist.html', chatlist=chats)
+
+@app.route('/addchatroom.html',methods=['GET','POST'])
+@flask_login.login_required
+def addchatroom():
+    if request.method == 'POST':
+        uid = get_uid()
+        chatlist_id = get_chatlist_id()
+        chatname = request.form.get('name')
+        cid = g.conn.execute("""SELECT MAX(cid) FROM chatrooms""").fetchone()[0]+1
+
+        engine.execute(f"""
+        INSERT INTO chatrooms(cid, name) VALUES ({cid}, '{chatname}')
+        """)
+
+        engine.execute(f"""
+        INSERT INTO create_room(cid, uid) VALUES ({cid}, {uid})
+        ON CONFLICT DO NOTHING
+        """)
+
+        engine.execute(f"""
+        INSERT INTO contain1(uid, chatlist_id, cid) VALUES ({uid}, {chatlist_id}, {cid})
+        ON CONFLICT DO NOTHING
+        """)
+
+        return redirect(url_for('backtohome', message="Successfully created chat room."))
+
+    return render_template('addchatroom.html')
+
+@app.route('/deletechatroom.html', methods=['GET', 'POST'])
+@flask_login.login_required
+def deletechatroom():
+    if request.method == 'POST':
+        cid = request.form.get('cid')
+        uid = get_uid()
+        owner_uid = g.conn.execute(f"""
+        SELECT uid
+        FROM create_room
+        WHERE cid={cid}
+        """).fetchone()[0]
+
+        if uid == owner_uid:
+            engine.execute(f"""
+            DELETE FROM contain1
+            WHERE cid={cid}
+            """)
+
+            engine.execute(f"""
+            DELETE FROM create_room
+            WHERE cid={cid}
+            """)
+
+            engine.execute(f"""
+            DELETE FROM join_room
+            WHERE cid={cid}
+            """)
+            engine.execute(f"""
+            DELETE FROM chatrooms
+            WHERE cid={cid}
+            """)
+
+            return redirect(url_for('backtohome',message="Successfully left and deleted chatroom."))
+        else:
+            engine.execute(f"""
+            DELETE FROM contain1
+            WHERE cid={cid} AND uid={uid}
+            """)
+            engine.execute(f"""
+            DELETE FROM join_room
+            WHERE cid={cid} AND uid={uid}
+            """)
+            return redirect(url_for('backtohome', message='Successfully left chatroom'))
+    chats = get_chats()
+    return render_template('deletechatroom.html', chatlist=chats)
+
 
 def get_uid():
     return g.conn.execute(f"""
@@ -301,11 +371,59 @@ def get_uid():
 
 
 def get_contlist_id():
-    return g.conn.execute(f"""
-    SELECT contlist_id
-    FROM manage2_contlists
-    WHERE uid='{get_uid()}'
-    """).fetchone()[0]
+    uid = get_uid()
+    contlist_id = g.conn.execute(f"""
+        SELECT contlist_id
+        FROM manage2_contlists
+        WHERE manage2_contlists.uid = {uid}
+        """).fetchone()
+
+    if contlist_id is None:
+        contlist_id = g.conn.execute("""SELECT MAX(contlist_id) FROM manage2_contlists""").fetchone()[0] + 1
+        engine.execute(f"""
+            INSERT INTO manage2_contlists VALUES ({uid}, {contlist_id})
+            """)
+    else:
+        contlist_id = contlist_id[0]
+
+    return contlist_id
+
+def get_chatlist_id():
+    uid = get_uid()
+    chatlist_id =  g.conn.execute(f"""
+    SELECT chatlist_id
+    FROM manage1_chatlists
+    WHERE uid={get_uid()}
+    """).fetchone()
+
+    if chatlist_id is None:
+        chatlist_id = g.conn.execute("""SELECT MAX (chatlist_id) FROM manage1_chatlists""").fetchone()[0]+1
+        engine.execute(f"""
+        INSERT INTO manage1_chatlists VALUES({uid}, {chatlist_id})
+        """)
+    else:
+        return chatlist_id[0]
+
+    return chatlist_id
+
+def get_chats():
+    uid = get_uid()
+    chatlist_id = get_chatlist_id()
+    chat_ids = g.conn.execute(f"""
+        SELECT cid
+        FROM contain1
+        WHERE uid={uid} AND chatlist_id = {chatlist_id}
+        """).fetchall()
+
+    chats = []
+    for cid in chat_ids:
+        chats.append(g.conn.execute(f"""
+            SELECT cid, name
+            FROM chatrooms
+            WHERE cid = {cid[0]}
+            """).fetchone())
+
+    return chats
 
 
 if __name__ == "__main__":

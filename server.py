@@ -85,17 +85,17 @@ def teardown_request(exception):
 
 @app.route('/')
 def start():
-    return render_template('index.html')
+    return render_template('login.html')
 
 
 @app.route('/index.html')
 def index():
-    return render_template('index.html')
+    return render_template('login.html')
 
 
 @app.route('/backtoindex.html', methods=['GET', ])
 def backtoindex():
-    return render_template('backtoindex.html', message=request.args.get('message'))
+    return render_template('login.html', message=request.args.get('message'))
 
 
 @app.route('/login.html', methods=['GET', 'POST'])

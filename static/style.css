@@ -9,7 +9,7 @@ body{
 }
 a {
     text-decoration: none;
-    color: #4a85c8;
+    color: #0099DD;
 }
 a:hover {
     border-bottom: 1px solid #F2B90C;
@@ -23,23 +23,30 @@ a:hover {
     border-radius: 20px;
     box-sizing: border-box;
     background-color: #fff;
-    /* box-shadow: 10px 5px 5px #CCD6D9; */
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
-.index_page {
-    height: 30px;
-    font-size: 50px;
-    line-height: 20px;
-    padding-top: 5px;
+
+.login_box01{
     text-align: center;
-    border-bottom: 1px solid #042656;
-    padding-right: 40px;
 }
 
-.index_box1 {
-    padding-top: 50px;
-    text-align: center;
+.login_box02{
+    width: 300px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 5px;
+}
 
+.submit01{
+    width: 300px;
+    height: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #0099DD;
+    border-radius: 20px;
+}
+.submit01:hover {
+    background-color: #F2B90C;
 }
 
 .bottom1 {

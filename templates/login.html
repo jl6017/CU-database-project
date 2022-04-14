@@ -1,15 +1,18 @@
 {%extends 'base.html' %}
 {% block content %}
-<div class="index_box1">
+    <div class="login_box01">
 <form action="login.html" method="POST">
-    <h1>Login</h1>
+    <h1>4111 Chatroom</h1>
     <label>
-        <input type="email" name="email" placeholder="Email" required="required"><br>
+        <input class="login_box02" type="email" name="email" placeholder="Email" required="required"><br>
     </label>
+    <br>
     <label>
-        <input type="password" name="password" placeholder="Password" required="required"><br><br>
+        <input class="login_box02" type="password" name="password" placeholder="Password" required="required"><br><br>
     </label>
-    <input type="submit" value="Log in">
-</form></div><br>
-<a href="index.html">Go back</a>
+    <input class="submit01" type="submit" value="Log in">
+</form>
+    <br>
+        Don't have an account,
+<a href="register.html">Register</a></div>
 {% endblock %}

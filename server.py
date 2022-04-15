@@ -12,11 +12,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql.expression import func
 from datetime import datetime
 import json
+from flask_wtf import FlaskForm
+from wtforms import FileField, SubmitField
+from werkzeug.utils import secure_filename
+import os
+from wtforms.validators import InputRequired
 
 app = Flask(__name__, instance_relative_config=True)
 app.secret_key = 'secret'
 app.config['SECRET_KEY'] = 'secret'
 app.config['SESSION_TYPE'] = 'filesystem'
+app.config['UPLOAD_FOLDER'] = 'static/files'
 Session(app)
 socketio = SocketIO(app, manage_session=False)
 
@@ -48,7 +54,9 @@ class write_show_messages(db.Model):
         self.time = time
         self.text_data = text_data
 
-
+class UploadFileForm(FlaskForm):
+    file = FileField("File", validators=[InputRequired()])
+    submit = SubmitField("Create")
 
 
 class User(flask_login.UserMixin):
@@ -165,6 +173,7 @@ def login():
 
 @app.route('/register.html', methods=['GET', 'POST'])
 def register():
+    form = UploadFileForm()
     if request.method == 'POST':
         entered_name = request.form.get('name')
         entered_email = request.form.get('email')
@@ -187,9 +196,27 @@ def register():
                        )
 
         message = "Registration successful."
+
+        if form.validate_on_submit():
+            file = form.file.data  # First grab the file
+            filename = file.filename
+            split_tup = os.path.splitext(filename)
+            filename = "{:05}".format(uid) + split_tup[1]
+
+
+            file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'],
+                                   secure_filename(filename)))  # Then save the file
+
+            engine.execute(f"""
+            UPDATE Users SET head_photo = {'yes'}
+            WHERE uid = {uid};
+            """)
+
+
+
         return redirect(url_for('backtoindex', message=message))
 
-    return render_template('register.html')
+    return render_template('register.html', form=form)
 
 
 @app.route('/contacts.html', methods=['GET', ])
@@ -219,6 +246,9 @@ def contacts():
 def home():
     chats = get_chats()
     all_chats = get_all_chats()
+    form = UploadFileForm()
+    uid = get_uid()
+    # filename = "defult.png"
 
     if request.method == 'POST':
         uid = get_uid()
@@ -319,10 +349,43 @@ def home():
             ON CONFLICT DO NOTHING
             """)
 
+            if form.validate_on_submit():
+                file = form.file.data  # First grab the file
+                filename = file.filename
+                split_tup = os.path.splitext(filename)
+                filename = "{:04}".format(uid) + "{:04}".format(cid) + split_tup[1]
+
+                file.save(os.path.join(os.path.abspath(os.path.dirname(__file__)), app.config['UPLOAD_FOLDER'],
+                                       secure_filename(filename)))  # Then save the file
+                # return "File has been uploaded."
+
+                engine.execute(f"""
+                UPDATE chatrooms SET head_photo = '{filename}'
+                WHERE cid = {cid};
+                """)
+
             return redirect(url_for('backtohome', message='Successfully created chatroom.'))
         # return redirect(url_for('backtohome', message="Successfully created chat room."))
+    head_name = g.conn.execute(f"""
+            SELECT head_photo
+            FROM Users
+            WHERE uid={uid}
+            """).fetchone()[0]
 
-    return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats)
+    if head_name is None:
+        head_name = "defult.png"
+    elif head_name == "defult.png":
+        pass
+    else:
+        pass
+        # head_name = "{:05}".format(uid) + ".png"
+
+
+    print(head_name)
+    return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats,
+                           form=form, filename=head_name)
+
+    # return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats)
 
 
 @app.route('/chat.html', methods=['GET', 'POST'])
@@ -335,6 +398,21 @@ def chat():
     time = request.args.get('time')
     msgs = get_all_msgs(cid)
 
+    head_name = g.conn.execute(f"""
+            SELECT head_photo
+            FROM chatrooms
+            WHERE cid={cid}
+            """).fetchone()[0]
+    if head_name is None:
+        head_name = "defult.png"
+    elif head_name == "defult.png":
+        pass
+    else:
+        pass
+        # head_name = '{:04}'.format(uid) + '{:04}'.format(cid) + '.png'
+
+    print(head_name)
+
     # for msg in msgs:
     #     name = g.conn.execute(f"""
     #     SELECT name
@@ -342,7 +420,7 @@ def chat():
     #     WHERE uid = {msg[0]}
     #     """)
     #     msg[0] = name
-    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room, time=time, msgs=msgs)
+    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room, time=time, msgs=msgs, filename=head_name)
 
 
 @socketio.on('join')

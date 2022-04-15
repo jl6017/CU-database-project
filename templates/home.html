@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
 {%block content%}
 <div class="login_box01">
-
+<img src="static/files/{{filename}}" class="bioimg" alt="..." >
 <h1>Hello, {{name}}</h1>
 Change your <a href="namechange.html">nickname</a><br>
+<!--    <form method='POST' enctype='multipart/form-data'>-->
+<!--        {{form.hidden_tag()}}-->
+<!--        {{form.file()}}-->
+<!--        {{form.submit()}}-->
+<!--    </form>-->
 </div>
+
 
 <div class="home_box01">
     <br>
@@ -55,14 +61,18 @@ Change your <a href="namechange.html">nickname</a><br>
     <br><br>
 
 
-    <form method="POST" action="home.html">
+    <form method="POST" enctype='multipart/form-data' action="home.html">
 
         Create a chatroom:
         <br>
 
         <label>
             <input class="home_box02" type="text" name="create-chat" placeholder="Room name">&nbsp&nbsp
-            <input class="submit04" type="submit" value="Create">
+            {{form.hidden_tag()}}
+            {{form.file()}}
+            {{form.submit()}}
+
+<!--            <input class="submit04" type="submit" value="Create">-->
         </label>
     </form>
 </div>

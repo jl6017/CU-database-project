@@ -7,6 +7,21 @@ body{
     margin:0;
     padding:0;
 }
+
+.bioimg {
+    width: 100px;
+    /*float: left;*/
+    border-radius: 50%;
+    margin: 1em 1em 1em 1em;
+
+}
+.bioimg2 {
+    height: 50px;
+    /*float: left;*/
+    border-radius: 50%;
+    /*margin: 1em 1em 1em 1em;*/
+}
+
 a {
     text-decoration: none;
     color: #0099DD;

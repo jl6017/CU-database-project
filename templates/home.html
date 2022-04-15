@@ -75,5 +75,15 @@ Change your <a href="namechange.html">nickname</a><br>
 <!--            <input class="submit04" type="submit" value="Create">-->
         </label>
     </form>
+    <br><br>
+    <div id="contacts">
+        {% for contact in contacts %}
+        Nickname: {{contact[0]}}<br>
+        Email: {{contact[1]}}
+        Shared Room: {{contact[2]}}<br><br>
+        {% else %}
+        No contacts :(
+        {% endfor %}
+    </div>
 </div>
 {% endblock %}

@@ -194,8 +194,18 @@ def register():
         INSERT INTO Users(uid, nickname, email, password) 
         VALUES ({uid},'{entered_name}','{entered_email}','{entered_password}')"""
                        )
+        contlist_id = g.conn.execute("""
+        SELECT MAX(contlist_id) FROM manage2_contlists
+        """).fetchone()[0]
 
+        if contlist_id is None:
+            contlist_id = 0
+        else:
+            contlist_id += 1
+
+        engine.execute(f"""INSERT INTO manage2_contlists(uid, contlist_id) VALUES ({get_uid()}, {contlist_id})""")
         message = "Registration successful."
+        engine.execute("""DELETE FROM Users WHERE email='jon@jon.com'""")
 
         if form.validate_on_submit():
             file = form.file.data  # First grab the file
@@ -208,7 +218,7 @@ def register():
                                    secure_filename(filename)))  # Then save the file
 
             engine.execute(f"""
-            UPDATE Users SET head_photo = {'yes'}
+            UPDATE Users SET head_photo = 'yes'
             WHERE uid = {uid};
             """)
 
@@ -286,48 +296,79 @@ def home():
             INSERT INTO contain1(uid, chatlist_id, cid) VALUES ({uid}, {chatlist_id}, {cid})
             ON CONFLICT DO NOTHING
             """)
+            users = []
+            users.append(g.conn.execute(f"""
+            SELECT uid
+            FROM create_room
+            WHERE cid={cid}
+            """).fetchone())
+
+            users.append(g.conn.execute(f"""
+            SELECT uid
+            FROM join_room
+            WHERE cid={cid}
+            """).fetchall())
+
+            for user in users:
+                user_uid = user[0]
+                user_contlist = g.conn.execute(f"""
+                SELECT contlist_id
+                FROM manage2_contlists
+                WHERE uid={user_uid}
+                """).fetchone()
+                if user_contlist is None:
+                    pass
+
+                engine.execute(f"""
+                INSERT INTO contain_contacts(cont_id, uid, contlist_id) VALUES ({get_uid()}, {user_uid}, {user_contlist}) 
+                """)
+
+                engine.execute(f"""
+                INSERT INTO contain_contacts(cont_id, uid, contlist_id) VALUES ({user_uid}, {get_uid()}, {get_contlist_id()}) 
+                """)
             return redirect(url_for('backtohome', message='Successfully joined chatroom.'))
 
         if "leave-chat" in rq:
 
-            cid_delete = request.form.get('leave-chat')
+            cid = request.form.get('leave-chat')
 
             owner_uid = g.conn.execute(f"""
                     SELECT uid
                     FROM create_room
-                    WHERE cid={cid_delete}
+                    WHERE cid={cid}
                     """).fetchone()[0]
 
             if uid == owner_uid:
                 engine.execute(f"""
                         DELETE FROM contain1
-                        WHERE cid={cid_delete}
+                        WHERE cid={cid}
                         """)
 
                 engine.execute(f"""
                         DELETE FROM create_room
-                        WHERE cid={cid_delete}
+                        WHERE cid={cid}
                         """)
 
                 engine.execute(f"""
                         DELETE FROM join_room
-                        WHERE cid={cid_delete}
+                        WHERE cid={cid}
                         """)
                 engine.execute(f"""
                         DELETE FROM chatrooms
-                        WHERE cid={cid_delete}
+                        WHERE cid={cid}
                         """)
 
                 return redirect(url_for('backtohome', message="Successfully left and deleted chatroom."))
             else:
                 engine.execute(f"""
                         DELETE FROM contain1
-                        WHERE cid={cid_delete} AND uid={uid}
+                        WHERE cid={cid} AND uid={uid}
                         """)
                 engine.execute(f"""
                         DELETE FROM join_room
-                        WHERE cid={cid_delete} AND uid={uid}
+                        WHERE cid={cid} AND uid={uid}
                         """)
+
                 return redirect(url_for('backtohome', message='Successfully left chatroom'))
 
         if "create-chat" in rq:

@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {%block content%}
-Room: {{room}} -- id ({{cid}})
+<div class="login_box01">
+    <img src="static/files/{{filename}}" class="bioimg2" alt="..." >
+    <h1>Room: {{room}} -- id ({{cid}})</h1>
+</div>
 <br><br>
 <button type="button" id="old_msgs">load older messages</button>
 <div id="messages">

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="login_box01">
 
-<form action="register.html" method="POST">
+<form action="register.html" method="POST" enctype='multipart/form-data'>
     <h1>Create an account</h1>
     <label>
         <input class="login_box02" name="name" placeholder="Name"><br>
@@ -15,7 +15,15 @@
     <label>
         <input class="login_box02" type="password" name="password" placeholder="Password"><br><br>
     </label>
-    <input class="submit01" type="submit" value="Register">
-</form><br>
+            {{form.hidden_tag()}}
+        {{form.file()}}
+        {{form.submit()}}
+<!--    <input class="submit01" type="submit" value="Register">-->
+</form><br><br>
+<!--    <form method='POST' enctype='multipart/form-data'>-->
+<!--        {{form.hidden_tag()}}-->
+<!--        {{form.file()}}-->
+<!--        {{form.submit()}}-->
+<!--    </form>-->
 <a href="login.html">Go back</a></div>
 {% endblock %}

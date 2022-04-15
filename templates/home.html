@@ -76,7 +76,7 @@ Change your <a href="namechange.html">nickname</a><br>
         </label>
     </form>
     <br><br>
-    <div id="contacts">
+    <div id="contacts" style="overflow: auto;height: 200px">
         {% for contact in contacts %}
         Nickname: {{contact[0]}}<br>
         Email: {{contact[1]}}

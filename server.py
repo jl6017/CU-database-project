@@ -207,7 +207,6 @@ def register():
 
         engine.execute(f"""INSERT INTO manage2_contlists(uid, contlist_id) VALUES ({get_uid()}, {contlist_id})""")
         message = "Registration successful."
-        engine.execute("""DELETE FROM Users WHERE email='jon@jon.com'""")
 
         if form.validate_on_submit():
             file = form.file.data  # First grab the file

@@ -5,79 +5,65 @@
 <h1>Hello, {{name}}</h1>
 Change your <a href="namechange.html">nickname</a><br>
 </div>
-<!--View or edit your <a href="contacts.html">contacts</a>.<br>-->
-<!--View or edit your <a href="chatlist.html">chatlist</a>-->
-
-
-<!--<br>-->
-<!--<a href="addchatroom.html">Add chatroom</a><br>-->
-<!--<a href="deletechatroom.html">Leave a chatroom</a><br>-->
-<!--<a href="home.html">Back</a><br>-->
 
 <div class="home_box01">
-<br>
-<form method="POST" action="home.html">
-
-    From all the room I have joined:
-
     <br>
-    <label>
-        <select class="home_box02" name="cid_join">
-            {% for chat in chatlist %}
-            <option value="{{chat[0]}}">{{chat[1]}} -- id ({{chat[0]}})</option>
-            {% endfor %}
-        </select>&nbsp&nbsp
-        <input class="submit03" type="submit" value="Chat">
-    </label>
+    <form method="POST" action="home.html">
+
+        Enter a chatroom:
+
+        <br>
+        <label>
+            <select class="home_box02" name="join-chat">
+                {% for chat in chatlist %}
+                <option value="{{chat[0]}}">{{chat[1]}} -- id ({{chat[0]}})</option>
+                {% endfor %}
+            </select>&nbsp&nbsp
+            <input class="submit03" type="submit" value="Chat">
+        </label>
+    </form>
     <br><br>
 
-    From all the room I haven't joined:
+    <form method="POST" action="home.html">
 
-    <br>
-    <label>
-        <select class="home_box02" name="cid_new">
-            {% for chat1 in allchats %}
-            <option value="{{chat1[0]}}">{{chat1[1]}} -- id ({{chat1[0]}})</option>
-            {% endfor %}
-        </select>&nbsp&nbsp
-        <input class="submit02" type="submit" value="Join">
-    </label>
+        Find a chatroom:
+
+        <br>
+        <label>
+            <select class="home_box02" name="find-chat">
+                {% for chat1 in allchats %}
+                <option value="{{chat1[0]}}">{{chat1[1]}} -- id ({{chat1[0]}})</option>
+                {% endfor %}
+            </select>&nbsp&nbsp
+            <input class="submit02" type="submit" value="Join">
+        </label>
+    </form>
+    <br><br>
+
+    <form method="POST" action="home.html">
+        Leave a chatroom:
+        <br>
+        <label>
+            <select class="home_box02" name="leave-chat">
+                {% for chat in chatlist %}
+                <option value="{{chat[0]}}">{{chat[1]}} -- id ({{chat[0]}})</option>
+                {% endfor %}
+            </select>&nbsp&nbsp
+            <input class="submit02" type="submit" value="Leave">
+        </label>
+    </form>
     <br><br>
 
 
-    Leave a room:
+    <form method="POST" action="home.html">
 
-    <br>
-    <label>
-        <select class="home_box02" name="cid_delete">
-            {% for chat in chatlist %}
-            <option value="{{chat[0]}}">{{chat[1]}} -- id ({{chat[0]}})</option>
-            {% endfor %}
-        </select>&nbsp&nbsp
-        <input class="submit02" type="submit" value="Leave">
-    </label>
-    <br><br>
-        create a new room:
-    <br>
+        Create a chatroom:
+        <br>
 
-    <label>
-<!--        <input type="text" name="name1" placeholder="Room name" required="required">-->
-        <input class="home_box02" type="text" name="name1" placeholder="Room name">&nbsp&nbsp
-        <input class="submit04" type="submit" value="Create">
-    </label>
-</form>
+        <label>
+            <input class="home_box02" type="text" name="create-chat" placeholder="Room name">&nbsp&nbsp
+            <input class="submit04" type="submit" value="Create">
+        </label>
+    </form>
 </div>
-
-<!--<br>-->
-<!--<form method="POST" action="home.html">-->
-<!--    <label>-->
-<!--        <select name="cid">-->
-<!--            {% for chat in chatlist %}-->
-<!--            <option value="{{chat[0]}}">{{chat[1]}} ({{chat[0]}})</option>-->
-<!--            {% endfor %}-->
-<!--        </select>-->
-<!--        <input type="submit" value="Join">-->
-<!--    </label>-->
-<!--</form>-->
-
 {% endblock %}

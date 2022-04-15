@@ -126,17 +126,17 @@ def teardown_request(exception):
 
 @app.route('/')
 def start():
-    return render_template('templates/login.html')
+    return render_template('login.html')
 
 
 @app.route('/login.html')
 def index():
-    return render_template('templates/login.html')
+    return render_template('login.html')
 
 
 @app.route('/backtoindex.html', methods=['GET', ])
 def backtoindex():
-    return render_template('templates/login.html', message=request.args.get('message'))
+    return render_template('login.html', message=request.args.get('message'))
 
 
 @app.route('/login.html', methods=['GET', 'POST'])
@@ -168,7 +168,7 @@ def login():
         user.is_authenticated()
         return redirect(url_for('home'))
 
-    return render_template('templates/login.html')
+    return render_template('login.html')
 
 
 @app.route('/register.html', methods=['GET', 'POST'])
@@ -216,7 +216,7 @@ def register():
 
         return redirect(url_for('backtoindex', message=message))
 
-    return render_template('templates/register.html', form=form)
+    return render_template('register.html', form=form)
 
 
 @app.route('/contacts.html', methods=['GET', ])
@@ -238,7 +238,7 @@ def contacts():
         WHERE uid = {cid[0]}
         """).fetchone())
 
-    return render_template('templates/contacts.html', contacts=contacts)
+    return render_template('contacts.html', contacts=contacts)
 
 
 @app.route('/home.html', methods=['GET', 'POST'])
@@ -382,7 +382,7 @@ def home():
 
 
     print(head_name)
-    return render_template('templates/home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats,
+    return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats,
                            form=form, filename=head_name)
 
     # return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats)
@@ -420,7 +420,7 @@ def chat():
     #     WHERE uid = {msg[0]}
     #     """)
     #     msg[0] = name
-    return render_template('templates/chat.html', uid=uid, name=name, cid=cid, room=room, time=time, msgs=msgs, filename=head_name)
+    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room, time=time, msgs=msgs, filename=head_name)
 
 
 @socketio.on('join')
@@ -467,13 +467,13 @@ def addcontact():
         """)
         message = 'Added contact.'
         return redirect(url_for('backtohome', message=message))
-    return render_template('templates/addcontact.html')
+    return render_template('addcontact.html')
 
 
 @app.route('/backtohome.html', methods=['GET', ])
 @flask_login.login_required
 def backtohome():
-    return render_template('templates/backtohome.html', message=request.args.get('message'))
+    return render_template('backtohome.html', message=request.args.get('message'))
 
 
 @app.route('/deletecontact.html', methods=['GET', 'POST'])
@@ -515,7 +515,7 @@ def deletecontact():
         WHERE uid = {cont_id[0]}
         """).fetchone())
 
-    return render_template('templates/deletecontact.html', contacts=contacts)
+    return render_template('deletecontact.html', contacts=contacts)
 
 
 @app.route('/namechange.html', methods=['GET', 'POST'])
@@ -532,7 +532,7 @@ def namechange():
         """)
 
         return redirect(url_for('backtohome', message="Name change successful."))
-    return render_template('templates/namechange.html')
+    return render_template('namechange.html')
 
 
 def get_uid():

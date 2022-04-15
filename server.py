@@ -40,7 +40,7 @@ class write_show_messages(db.Model):
     cid = db.Column('cid', db.Integer, primary_key=True)
     mid = db.Column('mid', db.Integer, primary_key=True)
     time = db.Column('time', db.TIMESTAMP)
-    text_data = db.Column('text_data', db.text)
+    text_data = db.Column('text_data', db.Text)
     def __init__(self, uid, cid, mid, time, text_data):
         self.uid = uid
         self.cid = cid
@@ -241,7 +241,9 @@ def home():
                 """).fetchone()[0]
             time = strftime("%Y-%m-%d %H:%M:%S")
 
-            return redirect(url_for('chat', uid=uid, name=name, cid=cid, room=c_name, time=time))
+            msgs = get_all_msgs(cid)
+
+            return redirect(url_for('chat', uid=uid, name=name, cid=cid, room=c_name, time=time, msgs=msgs))
 
         if "find-chat" in rq:
             cid = request.form.get('find-chat')
@@ -331,7 +333,16 @@ def chat():
     cid = request.args.get('cid')
     room = request.args.get('room')
     time = request.args.get('time')
-    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room, time=time)
+    msgs = get_all_msgs(cid)
+
+    # for msg in msgs:
+    #     name = g.conn.execute(f"""
+    #     SELECT name
+    #     FROM Users
+    #     WHERE uid = {msg[0]}
+    #     """)
+    #     msg[0] = name
+    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room, time=time, msgs=msgs)
 
 
 @socketio.on('join')
@@ -531,9 +542,12 @@ def get_all_chats():
             """).fetchone())
     return all_chats
 
-def conversion(j):
-    if isinstance(j, datetime):
-        return j.__str__()
+def get_all_msgs(cid):
+    return g.conn.execute(f"""
+    SELECT nickname, time, text_data
+    FROM write_show_messages JOIN Users ON write_show_messages.uid = Users.uid
+    WHERE cid={cid}
+    """).fetchall()
 
 if __name__ == "__main__":
     socketio.run(app)

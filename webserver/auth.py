@@ -16,10 +16,10 @@ def login():
         """)
 
         if check['cnt'][0] != 1:
-            return render_template('login.html')
-        return render_template('index.html')
+            return render_template('templates/login.html')
+        return render_template('templates/index.html')
 
-    return render_template('login.html')
+    return render_template('templates/login.html')
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -30,8 +30,8 @@ def register():
         matching_email = engine.execute(f"SELECT email FROM Users WHERE email = f{entered_email}")
         for email in matching_email['email']:
             if email == entered_email:
-                return render_template('register.html')
+                return render_template('templates/register.html')
 
         engine.execute(f"INSERT INTO Users(email, password) VALUES ({entered_email},{entered_password})")
-        return render_template('index.html')
-    return render_template('register.html')
+        return render_template('templates/index.html')
+    return render_template('templates/register.html')

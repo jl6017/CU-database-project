@@ -119,3 +119,9 @@ a:hover {
     /* color: #2C3140; */
     color: #5F6673;
 }
+
+#messages{
+    height: 500px;
+    scroll-behavior: auto;
+    scroll-margin-bottom: 0;
+}

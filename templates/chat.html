@@ -2,12 +2,10 @@
 {%block content%}
 Room: {{room}} -- id ({{cid}})
 <br><br>
-<button type="button" id="old_msgs">load older messages</button>
-<div id="messages">
+<div id="messages" style="height:500px;overflow: auto">
     {% for msg in msgs %}
     <div><b>{{msg[0]}} [{{msg[1]}}]: </b> {{msg[2]}}</div>
     {% endfor %}
-
 </div>
 <form id="input_form">
     <label>
@@ -72,5 +70,6 @@ Add Contact to Chat
         document.getElementById('messages').appendChild(newNode);
     });
 
+    document.getElementById("messages").scrollIntoView(false);
 </script>
 {% endblock %}

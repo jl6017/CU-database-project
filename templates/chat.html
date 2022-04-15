@@ -29,9 +29,12 @@ Room: {{room}} -- id ({{cid}})
             let message = input.value.trim();
             if (input.value.length) {
                 socket.emit('send', {
+                    uid: "{{uid}}",
                     name: "{{name}}",
+                    cid: "{{cid}}",
                     room: "{{room}}",
-                    message: message
+                    message: message,
+                    time: "{{time}}"
                 })
             }
             input.value = '';
@@ -41,7 +44,7 @@ Room: {{room}} -- id ({{cid}})
         socket.on('receive', function(data){
             console.log(data)
             const newNode = document.createElement('div');
-            newNode.innerHTML = `<b>${data.name}</b>: ${data.message}`;
+            newNode.innerHTML = `<b>${data.name}</b>: ${data.message}<br>${data.time}`;
             document.getElementById('messages').appendChild(newNode);
         });
         socket.on('join_broadcast', function(data){

@@ -5,6 +5,13 @@ from flask import Flask, request, render_template, g, redirect, Response, sessio
 from flask_socketio import SocketIO, join_room, leave_room, emit
 import flask_login
 from flask_session import Session
+from time import localtime, strftime
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.expression import func
+from datetime import datetime
+import json
 
 app = Flask(__name__, instance_relative_config=True)
 app.secret_key = 'secret'
@@ -13,15 +20,33 @@ app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 socketio = SocketIO(app, manage_session=False)
 
-DB_USER = 'jl6017'
-DB_PASS = 'jl6017'
+DB_USER = 'lrm2188'
+DB_PASS = '3846'
 DB_SERVER = 'w4111.cisxo09blonu.us-east-1.rds.amazonaws.com'
 DB_SERVER_ALT = 'w4111project1part2db.cisxo09blonu.us-east-1.rds.amazonaws.com/proj1part2'
 DB_URI = f'postgresql://{DB_USER}:{DB_PASS}@{DB_SERVER}/proj1part2'
 engine = create_engine(DB_URI)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
+db = SQLAlchemy(app)
+db.create_all()
+
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
+
+
+class write_show_messages(db.Model):
+    uid = db.Column('uid', db.Integer, primary_key=True)
+    cid = db.Column('cid', db.Integer, primary_key=True)
+    mid = db.Column('mid', db.Integer, primary_key=True)
+    time = db.Column('time', db.TIMESTAMP)
+    def __init__(self, uid, cid, mid, time):
+        self.uid = uid
+        self.cid = cid
+        self.mid = mid
+        self.time = time
+
+
 
 
 class User(flask_login.UserMixin):
@@ -212,8 +237,9 @@ def home():
                 FROM chatrooms
                 WHERE cid={cid}
                 """).fetchone()[0]
+            time = strftime("%Y-%m-%d %H:%M:%S")
 
-            return redirect(url_for('chat', uid=uid, name=name, cid=cid, room=c_name))
+            return redirect(url_for('chat', uid=uid, name=name, cid=cid, room=c_name, time=time))
 
         if "find-chat" in rq:
             cid = request.form.get('find-chat')
@@ -302,7 +328,8 @@ def chat():
     name = request.args.get('name')
     cid = request.args.get('cid')
     room = request.args.get('room')
-    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room)
+    time = request.args.get('time')
+    return render_template('chat.html', uid=uid, name=name, cid=cid, room=room, time=time)
 
 
 @socketio.on('join')
@@ -313,8 +340,16 @@ def handle_join(data):
 
 @socketio.on('send')
 def handle_send(data):
+    time = datetime.now().strftime("%Y%m%d %H:%M:%S")
     app.logger.info(f"{data['name']} has sent a message: {data['message']}")
+    data['time'] = time
     socketio.emit('receive', data, room=data['room'])
+
+    mid = db.session.query(func.max(write_show_messages.mid)).first()[0] +1
+    item = write_show_messages(data['uid'], data['cid'], mid, time)
+    db.session.add(item)
+    db.session.commit()
+
 
 #@socketio.on('join_broadcast')
 @app.route('/addcontact.html', methods=['GET', 'POST'])
@@ -494,6 +529,9 @@ def get_all_chats():
             """).fetchone())
     return all_chats
 
+def conversion(j):
+    if isinstance(j, datetime):
+        return j.__str__()
 
 if __name__ == "__main__":
     socketio.run(app)

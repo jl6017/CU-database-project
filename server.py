@@ -377,7 +377,9 @@ def home():
     elif head_name == "defult.png":
         pass
     else:
-        head_name = "{:05}".format(uid) + ".png"
+        pass
+        # head_name = "{:05}".format(uid) + ".png"
+
 
     print(head_name)
     return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats,
@@ -406,7 +408,8 @@ def chat():
     elif head_name == "defult.png":
         pass
     else:
-        head_name = '{:04}'.format(uid) + '{:04}'.format(cid) + '.png'
+        pass
+        # head_name = '{:04}'.format(uid) + '{:04}'.format(cid) + '.png'
 
     print(head_name)
 

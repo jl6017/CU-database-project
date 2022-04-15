@@ -40,11 +40,13 @@ class write_show_messages(db.Model):
     cid = db.Column('cid', db.Integer, primary_key=True)
     mid = db.Column('mid', db.Integer, primary_key=True)
     time = db.Column('time', db.TIMESTAMP)
-    def __init__(self, uid, cid, mid, time):
+    text_data = db.Column('text_data', db.text)
+    def __init__(self, uid, cid, mid, time, text_data):
         self.uid = uid
         self.cid = cid
         self.mid = mid
         self.time = time
+        self.text_data = text_data
 
 
 
@@ -346,7 +348,7 @@ def handle_send(data):
     socketio.emit('receive', data, room=data['room'])
 
     mid = db.session.query(func.max(write_show_messages.mid)).first()[0] +1
-    item = write_show_messages(data['uid'], data['cid'], mid, time)
+    item = write_show_messages(data['uid'], data['cid'], mid, time, data['message'])
     db.session.add(item)
     db.session.commit()
 

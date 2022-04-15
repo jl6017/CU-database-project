@@ -26,8 +26,8 @@ app.config['UPLOAD_FOLDER'] = 'static/files'
 Session(app)
 socketio = SocketIO(app, manage_session=False)
 
-DB_USER = 'lrm2188'
-DB_PASS = '3846'
+DB_USER = 'jl6017'
+DB_PASS = 'jl6017'
 DB_SERVER = 'w4111.cisxo09blonu.us-east-1.rds.amazonaws.com'
 DB_SERVER_ALT = 'w4111project1part2db.cisxo09blonu.us-east-1.rds.amazonaws.com/proj1part2'
 DB_URI = f'postgresql://{DB_USER}:{DB_PASS}@{DB_SERVER}/proj1part2'
@@ -90,6 +90,8 @@ def user_loader(email):
     FROM Users
     WHERE email='{email}'
     """).fetchone()
+    if info is None:
+        return
     user = User(info[0], info[1], info[2])
     user.id = email
     return user
@@ -258,7 +260,23 @@ def home():
     all_chats = get_all_chats()
     form = UploadFileForm()
     uid = get_uid()
+    contlist_id = get_contlist_id()
     # filename = "defult.png"
+
+    cont_ids = g.conn.execute(f"""
+        SELECT cont_id
+        FROM contain_contacts
+        WHERE uid={uid} AND contlist_id={contlist_id}
+        """).fetchall()
+
+    contacts = []
+    for cont_id in cont_ids:
+        contacts.append(g.conn.execute(f"""
+            SELECT nickname, email
+            FROM Users
+            WHERE uid = {cont_id[0]}
+            """).fetchone())
+
 
     if request.method == 'POST':
         uid = get_uid()
@@ -296,18 +314,11 @@ def home():
             INSERT INTO contain1(uid, chatlist_id, cid) VALUES ({uid}, {chatlist_id}, {cid})
             ON CONFLICT DO NOTHING
             """)
-            users = []
-            users.append(g.conn.execute(f"""
-            SELECT uid
-            FROM create_room
-            WHERE cid={cid}
-            """).fetchone())
-
-            users.append(g.conn.execute(f"""
-            SELECT uid
-            FROM join_room
-            WHERE cid={cid}
-            """).fetchall())
+            users = g.conn.execute(f"""
+            SELECT b.uid
+            FROM create_room as a JOIN join_room as b ON a.cid = b.cid
+            WHERE a.cid={cid}
+            """).fetchall()
 
             for user in users:
                 user_uid = user[0]
@@ -317,15 +328,18 @@ def home():
                 WHERE uid={user_uid}
                 """).fetchone()
                 if user_contlist is None:
-                    pass
+                    continue
 
                 engine.execute(f"""
-                INSERT INTO contain_contacts(cont_id, uid, contlist_id) VALUES ({get_uid()}, {user_uid}, {user_contlist}) 
+                INSERT INTO contain_contacts(cont_id, uid, contlist_id) VALUES ({get_uid()}, {user_uid}, {user_contlist[0]})
+                ON CONFLICT DO NOTHING
                 """)
 
                 engine.execute(f"""
-                INSERT INTO contain_contacts(cont_id, uid, contlist_id) VALUES ({user_uid}, {get_uid()}, {get_contlist_id()}) 
+                INSERT INTO contain_contacts(cont_id, uid, contlist_id) VALUES ({user_uid}, {get_uid()}, {get_contlist_id()})
+                ON CONFLICT DO NOTHING 
                 """)
+
             return redirect(url_for('backtohome', message='Successfully joined chatroom.'))
 
         if "leave-chat" in rq:
@@ -424,7 +438,7 @@ def home():
 
     print(head_name)
     return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats,
-                           form=form, filename=head_name)
+                           form=form, filename=head_name, contacts=contacts)
 
     # return render_template('home.html', name=flask_login.current_user.nickname, chatlist=chats, allchats=all_chats)
 
